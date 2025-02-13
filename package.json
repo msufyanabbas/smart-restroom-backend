@@ -24,6 +24,7 @@
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/platform-socket.io": "^11.0.9",
+    "@nestjs/serve-static": "^5.0.2",
     "axios": "^1.7.9",
     "dotenv": "^16.4.7",
     "mqtt": "^5.10.3",
