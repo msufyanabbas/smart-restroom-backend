@@ -16,7 +16,7 @@ export class WebSocketService implements OnGatewayConnection, OnGatewayDisconnec
     console.log('❌ Client disconnected:', client.id);
   }
 
-  sendOccupancyUpdate(deviceId: string, status: string) {
-    this.server.emit('occupancyUpdate', { deviceId, status });
+  sendOccupancyUpdate(deviceId: string, status: string, name: string) {
+    this.server.emit('occupancyUpdate', { deviceId, status, name });
   }
 }

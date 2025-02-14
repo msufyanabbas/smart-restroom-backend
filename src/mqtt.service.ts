@@ -1,11 +1,12 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import * as mqtt from 'mqtt';
 import { WebSocketService } from './websocket.service';
+import { Cubicle } from './cubicle.interface';
 
 @Injectable()
 export class MqttService implements OnModuleInit {
   private client;
-  private sensorStatus: Record<string, string> = {};
+  private sensorStatus: Record<string, Cubicle> = {};
 
   constructor(private readonly webSocketService: WebSocketService) {}
 
@@ -31,11 +32,12 @@ export class MqttService implements OnModuleInit {
 
   private processUplink(data: any) {
     const deviceId = data.devEUI;
+    const name = data.name;
     const occupancyStatus = data.occupancy ? 'Occupied' : 'Vacant';
 
-    this.sensorStatus[deviceId] = occupancyStatus;
+    this.sensorStatus[deviceId] = { deviceId, name, status: occupancyStatus };
 
-    this.webSocketService.sendOccupancyUpdate(deviceId, occupancyStatus);
+    this.webSocketService.sendOccupancyUpdate(deviceId, occupancyStatus, name);
   }
 
   public getAllSensorStatuses() {
