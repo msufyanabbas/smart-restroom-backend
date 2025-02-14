@@ -32,7 +32,7 @@ export class MqttService implements OnModuleInit {
 
   private processUplink(data: any) {
     const deviceId = data.devEUI;
-    const name = data.name;
+    const name = data.deviceName;
     const occupancyStatus = data.occupancy ? 'Occupied' : 'Vacant';
 
     this.sensorStatus[deviceId] = { deviceId, name, status: occupancyStatus };
