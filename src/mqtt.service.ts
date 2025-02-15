@@ -31,6 +31,7 @@ export class MqttService implements OnModuleInit {
   }
 
   private processUplink(data: any) {
+    if (data.occupancy !== undefined && data.occupancy !== null) {
     const deviceId = data.devEUI;
     const name = data.deviceName;
     const occupancyStatus = data.occupancy ? 'Occupied' : 'Vacant';
@@ -38,6 +39,7 @@ export class MqttService implements OnModuleInit {
     this.sensorStatus[deviceId] = { deviceId, name, status: occupancyStatus };
 
     this.webSocketService.sendOccupancyUpdate(deviceId, occupancyStatus, name);
+    }
   }
 
   public getAllSensorStatuses() {
