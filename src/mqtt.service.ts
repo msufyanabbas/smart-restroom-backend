@@ -65,6 +65,6 @@ export class MqttService implements OnModuleInit {
   }
 
   public getAllSensorStatuses() {
-    return Object.values(this.sensorStatus).sort((a, b) => a.createdAt - b.createdAt);
+    return Object.values(this.sensorStatus).sort((a, b) => b.createdAt - a.createdAt);
   }
 }
