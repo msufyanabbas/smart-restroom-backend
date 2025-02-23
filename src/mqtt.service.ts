@@ -8,7 +8,7 @@ export class MqttService implements OnModuleInit {
   private client;
   private sensorStatus: Record<string, Cubicle & { createdAt: number }> = {};
   private deviceLastActive: Map<string, NodeJS.Timeout> = new Map();
-  private readonly INACTIVITY_THRESHOLD = 2 * 60 * 1000; 
+  private readonly INACTIVITY_THRESHOLD = 2 * 60 * 1000; // 2 minutes
 
   constructor(private readonly webSocketService: WebSocketService) {}
 
@@ -39,9 +39,14 @@ export class MqttService implements OnModuleInit {
       const occupancyStatus = data.occupancy ? 'Occupied' : 'Vacant';
 
       if (!this.sensorStatus[deviceId]) {
+        // Set createdAt only when the device is first seen
         this.sensorStatus[deviceId] = { deviceId, name, status: occupancyStatus, createdAt: Date.now() };
       } else {
-        this.sensorStatus[deviceId].status = occupancyStatus;
+        // Preserve the existing createdAt timestamp
+        this.sensorStatus[deviceId] = {
+          ...this.sensorStatus[deviceId],
+          status: occupancyStatus,
+        };
       }
       
       this.webSocketService.sendOccupancyUpdate(deviceId, occupancyStatus, name);
@@ -65,6 +70,6 @@ export class MqttService implements OnModuleInit {
   }
 
   public getAllSensorStatuses() {
-    return Object.values(this.sensorStatus).sort((a, b) => b.createdAt - a.createdAt);
+    return Object.values(this.sensorStatus).sort((a, b) => a.createdAt - b.createdAt);
   }
 }
