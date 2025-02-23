@@ -6,7 +6,9 @@ import { Cubicle } from './cubicle.interface';
 @Injectable()
 export class MqttService implements OnModuleInit {
   private client;
-  private sensorStatus: Record<string, Cubicle> = {};
+  private sensorStatus: Record<string, Cubicle & { createdAt: number }> = {};
+  private deviceLastActive: Map<string, NodeJS.Timeout> = new Map();
+  private readonly INACTIVITY_THRESHOLD = 2 * 60 * 1000; 
 
   constructor(private readonly webSocketService: WebSocketService) {}
 
@@ -32,17 +34,37 @@ export class MqttService implements OnModuleInit {
 
   private processUplink(data: any) {
     if (data.occupancy !== undefined && data.occupancy !== null) {
-    const deviceId = data.devEUI;
-    const name = data.deviceName;
-    const occupancyStatus = data.occupancy ? 'Occupied' : 'Vacant';
+      const deviceId = data.devEUI;
+      const name = data.deviceName;
+      const occupancyStatus = data.occupancy ? 'Occupied' : 'Vacant';
 
-    this.sensorStatus[deviceId] = { deviceId, name, status: occupancyStatus };
-
-    this.webSocketService.sendOccupancyUpdate(deviceId, occupancyStatus, name);
+      if (!this.sensorStatus[deviceId]) {
+        this.sensorStatus[deviceId] = { deviceId, name, status: occupancyStatus, createdAt: Date.now() };
+      } else {
+        this.sensorStatus[deviceId].status = occupancyStatus;
+      }
+      
+      this.webSocketService.sendOccupancyUpdate(deviceId, occupancyStatus, name);
+      this.updateDeviceActivity(deviceId);
     }
   }
 
+  private updateDeviceActivity(deviceId: string) {
+    if (this.deviceLastActive.has(deviceId)) {
+      clearTimeout(this.deviceLastActive.get(deviceId));
+    }
+
+    const timeout = setTimeout(() => {
+      delete this.sensorStatus[deviceId];
+      this.deviceLastActive.delete(deviceId);
+      this.webSocketService.sendDeviceRemoved(deviceId);
+      console.log(`⚠️ Device removed due to inactivity: ${deviceId}`);
+    }, this.INACTIVITY_THRESHOLD);
+
+    this.deviceLastActive.set(deviceId, timeout);
+  }
+
   public getAllSensorStatuses() {
-    return this.sensorStatus;
+    return Object.values(this.sensorStatus).sort((a, b) => a.createdAt - b.createdAt);
   }
 }

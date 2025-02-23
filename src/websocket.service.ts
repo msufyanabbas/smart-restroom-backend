@@ -19,4 +19,8 @@ export class WebSocketService implements OnGatewayConnection, OnGatewayDisconnec
   sendOccupancyUpdate(deviceId: string, status: string, name: string) {
     this.server.emit('occupancyUpdate', { deviceId, status, name });
   }
+
+  sendDeviceRemoved(deviceId: string) {
+  this.server.emit('deviceRemoved', { deviceId });
+}
 }
